@@ -1,0 +1,32 @@
+<?xml version="1.0"?>
+<ruleset name="Bluesky">
+	<description>WordPress Bluesky Standards</description>
+
+	<file>./bluesky.php</file>
+	<file>./includes/</file>
+	<exclude-pattern>*/includes/*\.(inc|css|js|svg)</exclude-pattern>
+	<exclude-pattern>*/vendor/*</exclude-pattern>
+	<exclude-pattern>*/libraries/*</exclude-pattern>
+	<exclude-pattern>*/config/*</exclude-pattern>
+	<exclude-pattern>*/node_modules/*</exclude-pattern>
+	<exclude-pattern>*/tests/*</exclude-pattern>
+	<rule ref="PHPCompatibility"/>
+	<config name="testVersion" value="5.6-"/>
+	<rule ref="WordPress-Core" />
+	<rule ref="PHPCompatibilityWP"/>
+	<config name="minimum_supported_wp_version" value="4.9"/>
+	<rule ref="WordPress.WP.DeprecatedFunctions" />
+	<rule ref="WordPress.Files.FileName">
+		<properties>
+			<property name="strict_class_file_names" value="false" />
+		</properties>
+	</rule>
+	<rule ref="WordPress-Extra" />
+	<rule ref="WordPress.WP.I18n"/>
+	<config name="text_domain" value="bluesky,default"/>
+	<rule ref="WordPress.Security">
+		<exclude name="WordPress.Security.ValidatedSanitizedInput" />
+		<exclude name="WordPress.Security.NonceVerification" />
+		<exclude name="WordPress.Security.EscapeOutput" />
+	</rule>
+</ruleset>

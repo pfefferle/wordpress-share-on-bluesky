@@ -1,0 +1,30 @@
+{
+    "name": "pfefferle/wordpress-bluesky",
+    "license": "GPL-2.0",
+    "require": {
+        "php": ">=5.6.0",
+        "composer/installers": "^1.0 || ^2.0"
+    },
+    "authors": [
+        {
+            "name": "Matthias Pfefferle",
+            "homepage": "https://notiz.blog"
+        }
+    ],
+    "require-dev": {
+        "phpcompatibility/php-compatibility": "*",
+        "phpcompatibility/phpcompatibility-wp": "*",
+        "squizlabs/php_codesniffer": "3.*",
+        "wp-coding-standards/wpcs": "*",
+        "dealerdirect/phpcodesniffer-composer-installer": "^1.0.0"
+    },
+    "config": {
+        "allow-plugins": {
+            "dealerdirect/phpcodesniffer-composer-installer": true,
+            "composer/installers": true
+        }
+    },
+    "extra": {
+        "installer-name": "bluesky"
+    }
+}
