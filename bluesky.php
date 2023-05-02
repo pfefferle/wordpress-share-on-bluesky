@@ -237,11 +237,6 @@ function send_post( $post_id ) {
 	$bluesky_domain = get_user_meta( $post->post_author, 'bluesky_domain', true );
 	$bluesky_domain = trailingslashit( $bluesky_domain );
 
-	$excerpt_length = apply_filters( 'excerpt_length', 55 );
-	$excerpt_more   = apply_filters( 'excerpt_more', ' [...]' );
-
-	$text = wp_trim_words( get_the_excerpt( $post ), $excerpt_length, $excerpt_more );
-
 	$wp_version = \get_bloginfo( 'version' );
 	$user_agent = \apply_filters( 'http_headers_useragent', 'WordPress/' . $wp_version . '; ' . \get_bloginfo( 'url' ) );
 
@@ -260,14 +255,14 @@ function send_post( $post_id ) {
 					'repo'       => $did,
 					'record'     => array(
 						'$type'     => 'app.bsky.feed.post',
-						'text'      => $text,
+						'text'      => get_excerpt( $post, 400 ),
 						'createdAt' => gmdate( 'c', strtotime( $post->post_date_gmt ) ),
 						'embed'     => array(
 							'$type'    => 'app.bsky.embed.external',
 							'external' => array(
 								'uri'         => wp_get_shortlink( $post->ID ),
 								'title'       => $post->post_title,
-								'description' => $text,
+								'description' => get_excerpt( $post ),
 							),
 						),
 					),
@@ -281,3 +276,17 @@ function send_post( $post_id ) {
 	}
 }
 add_action( 'bluesky_send_post', __NAMESPACE__ . '\send_post' );
+
+/**
+ * Returns an excerpt
+ *
+ * @param WP_Post $post
+ * @param int     $length
+ * @return void
+ */
+function get_excerpt( $post, $length = 55 ) {
+	$excerpt_length = apply_filters( 'excerpt_length', $length );
+	$excerpt_more   = apply_filters( 'excerpt_more', ' [...]' );
+
+	return wp_trim_words( get_the_excerpt( $post ), $excerpt_length, $excerpt_more );
+}
