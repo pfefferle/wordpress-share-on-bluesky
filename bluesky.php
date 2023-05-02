@@ -15,7 +15,7 @@
 namespace Bluesky;
 
 /**
- * Undocumented function
+ * Register Settings
  *
  * @return void
  */
@@ -262,6 +262,14 @@ function send_post( $post_id ) {
 						'$type'     => 'app.bsky.feed.post',
 						'text'      => $text,
 						'createdAt' => gmdate( 'c', strtotime( $post->post_date_gmt ) ),
+						'embed'     => array(
+							'$type'    => 'app.bsky.embed.external',
+							'external' => array(
+								'uri'         => wp_get_shortlink( $post->ID ),
+								'title'       => $post->post_title,
+								'description' => $text,
+							),
+						),
 					),
 				)
 			),
