@@ -1,6 +1,7 @@
 {
     "name": "pfefferle/wordpress-bluesky",
     "license": "GPL-2.0",
+    "type": "wordpress-plugin",
     "require": {
         "php": ">=5.6.0",
         "composer/installers": "^1.0 || ^2.0"
