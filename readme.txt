@@ -8,3 +8,15 @@ Stable tag: 1.0.0
 Requires PHP: 5.6
 License: GPL-2.0
 License URI: https://opensource.org/license/gpl-2-0/
+
+A simple Crossposter for Bluesky (AT Protocol)
+
+== Description ==
+
+Bluesky is a WordPress plugin that allows you to automatically share new posts using your Bluesky-Profile.
+
+== Changelog ==
+
+= 1.0.0 =
+
+- Initial release.
