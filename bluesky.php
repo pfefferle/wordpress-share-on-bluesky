@@ -5,7 +5,7 @@
  * Description: A simple Crossposter for Bluesky (AT Protocol)
  * Author: Matthias Pfefferle
  * Author URI: https://notiz.blog/
- * Version: 1.0.0
+ * Version: 1.0.1
  * License: GPL-2.0
  * License URI: https://opensource.org/license/gpl-2-0/
  * Text Domain: bluesky
@@ -109,7 +109,7 @@ function add_profile_section( $user ) {
 	);
 
 	if ( get_the_author_meta( 'bluesky_access_jwt', $user->ID ) ) {
-		_e( 'Connected!', 'bluesky' );
+		esc_html_e( 'Connected!', 'bluesky' );
 	}
 
 	?>
@@ -122,7 +122,7 @@ function add_profile_section( $user ) {
 				<td>
 					<input type="text" name="bluesky-domain" id="bluesky-domain" value="<?php echo esc_attr( get_the_author_meta( 'bluesky_domain', $user->ID ) ); ?>" placeholder="https://bsky.social" />
 					<p class="description" id="bluesky-domain-description">
-						<?php _e( 'The Domain of your Bluesky-Instance.', 'bluesky' ); ?>
+						<?php esc_html_e( 'The domain of your Bluesky instance.', 'bluesky' ); ?>
 					</p>
 				</td>
 			</tr>
@@ -134,7 +134,7 @@ function add_profile_section( $user ) {
 				<td>
 					<input type="text" name="bluesky-identifier" id="bluesky-identifier" aria-describedby="email-description" value="<?php echo esc_attr( get_the_author_meta( 'bluesky_identifier', $user->ID ) ); ?>">
 					<p class="description" id="bluesky-identifier-description">
-						<?php _e( 'Your Bluesky-identifier.', 'bluesky' ); ?>
+						<?php esc_html_e( 'Your Bluesky identifier.', 'bluesky' ); ?>
 					</p>
 				</td>
 			</tr>
@@ -146,7 +146,7 @@ function add_profile_section( $user ) {
 				<td>
 					<input type="text" name="bluesky-password" id="bluesky-password" class="regular-text code">
 					<p class="description" id="bluesky-password-description">
-						<?php _e( 'Your Bluesky-Password. It is needed to get an Access-Token and will not be stored anywhere.', 'bluesky' ); ?>
+						<?php esc_html_e( 'Your Bluesky password. It is needed to get an Access-Token and will not be stored anywhere.', 'bluesky' ); ?>
 					</p>
 				</td>
 			</tr>
@@ -158,7 +158,7 @@ add_action( 'show_user_profile', __NAMESPACE__ . '\add_profile_section' );
 add_action( 'edit_user_profile', __NAMESPACE__ . '\add_profile_section' );
 
 /**
- * Save the Nostr name and public key when the user profile is updated.
+ * Save Bluesky data when the user profile is updated.
  *
  * @param int $user_id User ID.
  * @return void
@@ -175,37 +175,48 @@ function save_bluesky_profile_info( $user_id ) {
 	update_user_meta( $user_id, 'bluesky_identifier', $bluesky_identifier );
 	update_user_meta( $user_id, 'bluesky_domain', $bluesky_domain );
 
-	$wp_version = \get_bloginfo( 'version' );
-	$user_agent = \apply_filters( 'http_headers_useragent', 'WordPress/' . $wp_version . '; ' . \get_bloginfo( 'url' ) );
+	if (
+		! empty( $bluesky_domain )
+		&& ! empty( $bluesky_identifier )
+		&& ! empty( $bluesky_password )
+	) {
+		$bluesky_domain = trailingslashit( $bluesky_domain );
+		$session_url    = $bluesky_domain . 'xrpc/com.atproto.server.createSession';
+		$wp_version     = \get_bloginfo( 'version' );
+		$user_agent     = \apply_filters( 'http_headers_useragent', 'WordPress/' . $wp_version . '; ' . \get_bloginfo( 'url' ) );
 
-	$bluesky_domain = trailingslashit( $bluesky_domain );
 
-	$response = wp_safe_remote_post(
-		$bluesky_domain . 'xrpc/com.atproto.server.createSession',
-		array(
-			'user-agent' => "$user_agent; ActivityPub",
-			'headers'    => array(
-				'Content-Type' => 'application/json',
-			),
-			'body'       => wp_json_encode(
-				array(
-					'identifier' => $bluesky_identifier,
-					'password'   => $bluesky_password,
-				)
-			),
-		)
-	);
+		$response = wp_safe_remote_post(
+			esc_url_raw( $session_url ),
+			array(
+				'user-agent' => "$user_agent; ActivityPub",
+				'headers'    => array(
+					'Content-Type' => 'application/json',
+				),
+				'body'       => wp_json_encode(
+					array(
+						'identifier' => $bluesky_identifier,
+						'password'   => $bluesky_password,
+					)
+				),
+			)
+		);
 
-	if ( is_wp_error( $response ) ) {
-		// show error
-	}
+		if ( is_wp_error( $response ) ) {
+			// show error
+		}
 
-	$data = json_decode( wp_remote_retrieve_body( $response ), true );
+		$data = json_decode( wp_remote_retrieve_body( $response ), true );
 
-	if ( ! empty( $data['accessJwt'] ) && ! empty( $data['refreshJwt'] ) ) {
-		update_user_meta( $user_id, 'bluesky_access_jwt', $data['accessJwt'] );
-		update_user_meta( $user_id, 'bluesky_refresh_jwt', $data['refreshJwt'] );
-		update_user_meta( $user_id, 'bluesky_did', $data['did'] );
+		if (
+			! empty( $data['accessJwt'] )
+			&& ! empty( $data['refreshJwt'] )
+			&& ! empty( $data['did'] )
+		) {
+			update_user_meta( $user_id, 'bluesky_access_jwt', $data['accessJwt'] );
+			update_user_meta( $user_id, 'bluesky_refresh_jwt', $data['refreshJwt'] );
+			update_user_meta( $user_id, 'bluesky_did', $data['did'] );
+		}
 	}
 }
 add_action( 'personal_options_update', __NAMESPACE__ . '\save_bluesky_profile_info' );
