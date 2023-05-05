@@ -1,6 +1,6 @@
 <?php
 /**
- * Plugin Name: Bluesky
+ * Plugin Name: Share On Bluesky
  * Plugin URI: https://github.com/pfefferle/wordpress-bluesky
  * Description: A simple Crossposter for Bluesky (AT Protocol)
  * Author: Matthias Pfefferle
@@ -12,7 +12,7 @@
  * Domain Path: /languages
  */
 
-namespace Bluesky;
+namespace Share_On_Bluesky;
 
 /**
  * Register Settings
@@ -97,7 +97,6 @@ add_filter( 'plugin_action_links_' . plugin_basename( __FILE__ ), __NAMESPACE__ 
  * Add a section to user's profile to add their Bluesky name and public key.
  *
  * @param WP_User $user User instance to output for.
- *
  * @return void
  */
 function add_profile_section( $user ) {

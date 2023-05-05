@@ -1,5 +1,5 @@
 {
-    "name": "pfefferle/wordpress-bluesky",
+    "name": "pfefferle/wordpress-share-on-bluesky",
     "license": "GPL-2.0",
     "type": "wordpress-plugin",
     "require": {
@@ -26,6 +26,6 @@
         }
     },
     "extra": {
-        "installer-name": "bluesky"
+        "installer-name": "share-on-bluesky"
     }
 }

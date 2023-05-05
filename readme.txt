@@ -1,4 +1,4 @@
-=== Bluesky ===
+=== Share on Bluesky ===
 Contributors: pfefferle
 Donate link: https://notiz.blog/donate/
 Tags: bluesky, microblogging, atprotocol
