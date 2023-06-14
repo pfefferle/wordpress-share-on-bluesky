@@ -253,7 +253,7 @@ function send_post( $post_id ) {
 	$response = wp_safe_remote_post(
 		$bluesky_domain . 'xrpc/com.atproto.repo.createRecord',
 		array(
-			'user-agent' => "$user_agent; ActivityPub",
+			'user-agent' => "$user_agent; Share on Bluesky",
 			'headers'    => array(
 				'Content-Type'  => 'application/json',
 				'Authorization' => 'Bearer ' . $access_token,
