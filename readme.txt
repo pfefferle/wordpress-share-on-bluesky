@@ -13,7 +13,7 @@ A simple Crossposter for Bluesky (AT Protocol)
 
 == Description ==
 
-Bluesky is a WordPress plugin that allows you to automatically share new posts using your Bluesky-Profile.
+"Share on Bluesky" is a WordPress plugin that allows you to automatically share new posts using your Bluesky-Profile.
 
 == Changelog ==
 

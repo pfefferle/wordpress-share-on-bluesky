@@ -121,7 +121,7 @@ function add_profile_section( $user ) {
 				<td>
 					<input type="text" name="bluesky-domain" id="bluesky-domain" value="<?php echo esc_attr( get_the_author_meta( 'bluesky_domain', $user->ID ) ); ?>" placeholder="https://bsky.social" />
 					<p class="description" id="bluesky-domain-description">
-						<?php esc_html_e( 'The domain of your Bluesky instance.', 'bluesky' ); ?>
+						<?php esc_html_e( 'The domain of your Bluesky instance. (This has to be a valid URL including "http(s)")', 'bluesky' ); ?>
 					</p>
 				</td>
 			</tr>
@@ -145,7 +145,7 @@ function add_profile_section( $user ) {
 				<td>
 					<input type="text" name="bluesky-password" id="bluesky-password" class="regular-text code">
 					<p class="description" id="bluesky-password-description">
-						<?php esc_html_e( 'Your Bluesky password. It is needed to get an Access-Token and will not be stored anywhere.', 'bluesky' ); ?>
+						<?php esc_html_e( 'Your Bluesky application password. It is needed to get an Access-Token and will not be stored anywhere.', 'bluesky' ); ?>
 					</p>
 				</td>
 			</tr>
@@ -184,7 +184,6 @@ function save_bluesky_profile_info( $user_id ) {
 		$wp_version     = \get_bloginfo( 'version' );
 		$user_agent     = \apply_filters( 'http_headers_useragent', 'WordPress/' . $wp_version . '; ' . \get_bloginfo( 'url' ) );
 
-
 		$response = wp_safe_remote_post(
 			esc_url_raw( $session_url ),
 			array(
@@ -201,8 +200,14 @@ function save_bluesky_profile_info( $user_id ) {
 			)
 		);
 
-		if ( is_wp_error( $response ) ) {
-			// show error
+		if (
+			\is_wp_error( $response ) ||
+			\wp_remote_retrieve_response_code( $response ) >= 300
+		) {
+			delete_user_meta( $user_id, 'bluesky_access_jwt' );
+			delete_user_meta( $user_id, 'bluesky_refresh_jwt' );
+			delete_user_meta( $user_id, 'bluesky_did' );
+			return;
 		}
 
 		$data = json_decode( wp_remote_retrieve_body( $response ), true );
@@ -215,11 +220,33 @@ function save_bluesky_profile_info( $user_id ) {
 			update_user_meta( $user_id, 'bluesky_access_jwt', $data['accessJwt'] );
 			update_user_meta( $user_id, 'bluesky_refresh_jwt', $data['refreshJwt'] );
 			update_user_meta( $user_id, 'bluesky_did', $data['did'] );
+		} else {
+			delete_user_meta( $user_id, 'bluesky_access_jwt' );
+			delete_user_meta( $user_id, 'bluesky_refresh_jwt' );
+			delete_user_meta( $user_id, 'bluesky_did' );
 		}
 	}
 }
 add_action( 'personal_options_update', __NAMESPACE__ . '\save_bluesky_profile_info' );
 add_action( 'edit_user_profile_update', __NAMESPACE__ . '\save_bluesky_profile_info' );
+
+/**
+ * Show an admin notice if the user is not connected to Bluesky.
+ *
+ * @param WP_Error $errors WP_Error object (passed by reference).
+ * @param bool     $update Whether this is a user update.
+ * @param stdClass $user   User object (passed by reference).
+ *
+ * @return WP_Error $errors The updated WP_Error object.
+ */
+function admin_notice( $validation_errors, $update = null, $user = null ) {
+	if ( ! get_user_meta( $user->ID, 'bluesky_access_jwt' ) ) {
+		$validation_errors->add( 'error', __( 'There was an error connecting to your Bluesky instance. Please check your credentials.', 'bluesky' ) );
+	}
+
+	return $validation_errors;
+}
+add_action( 'user_profile_update_errors', __NAMESPACE__ . '\admin_notice', 10, 3 );
 
 /**
  * Schedule Cross-Posting-Event to not slow down publishing
@@ -261,18 +288,18 @@ function send_post( $post_id ) {
 			'body'       => wp_json_encode(
 				array(
 					'collection' => 'app.bsky.feed.post',
-					'did'        => $did,
-					'repo'       => $did,
+					'did'        => esc_html( $did ),
+					'repo'       => esc_html( $did ),
 					'record'     => array(
 						'$type'     => 'app.bsky.feed.post',
-						'text'      => get_excerpt( $post, 400 ),
+						'text'      => esc_html( get_excerpt( $post, 400 ) ),
 						'createdAt' => gmdate( 'c', strtotime( $post->post_date_gmt ) ),
 						'embed'     => array(
 							'$type'    => 'app.bsky.embed.external',
 							'external' => array(
 								'uri'         => wp_get_shortlink( $post->ID ),
-								'title'       => $post->post_title,
-								'description' => get_excerpt( $post ),
+								'title'       => esc_html( $post->post_title ),
+								'description' => esc_html( get_excerpt( $post ) ),
 							),
 						),
 					),
@@ -286,6 +313,28 @@ function send_post( $post_id ) {
 	}
 }
 add_action( 'bluesky_send_post', __NAMESPACE__ . '\send_post' );
+
+/**
+ * Add a weekly event to refresh the access token.
+ *
+ * @return void
+ */
+function add_scheduler() {
+	if ( ! \wp_next_scheduled( 'bluesky_refresh_token' ) ) {
+		\wp_schedule_event( time(), 'weekly', 'bluesky_refresh_token' );
+	}
+}
+\register_activation_hook( __FILE__, __NAMESPACE__ . '\add_scheduler' );
+
+/**
+ * Remove the weekly event to refresh the access token.
+ *
+ * @return void
+ */
+function remove_scheduler() {
+	\wp_clear_scheduled_hook( 'bluesky_refresh_token' );
+}
+\register_deactivation_hook( __FILE__, __NAMESPACE__ . '\remove_scheduler' );
 
 /**
  * Returns an excerpt
