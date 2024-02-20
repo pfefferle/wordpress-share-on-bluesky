@@ -81,7 +81,7 @@ function register_settings() {
 			'type'              => 'string',
 			'description'       => \__( 'The domain of your Bluesky instance', 'share-on-bluesky' ),
 			'default'           => 'https://bsky.social',
-			'sanitize_callback' => 'esc_url_raw',
+			'sanitize_callback' => 'sanitize_text_field',
 		)
 	);
 
@@ -145,10 +145,9 @@ function register_settings() {
 /**
  * Add a section to user's profile to add their Bluesky name and public key.
  *
- * @param WP_User $user User instance to output for.
  * @return void
  */
-function settings_page( $user ) {
+function settings_page() {
 	printf(
 		'<h2 id="bluesky">%1$s</h2>',
 		\esc_html__( 'Share on Bluesky', 'share-on-bluesky' )
@@ -379,14 +378,20 @@ function send_post( $post_id ) {
 					'repo'       => \esc_html( $did ),
 					'record'     => array(
 						'$type'     => 'app.bsky.feed.post',
-						'text'      => \esc_html( \get_excerpt( $post, 400 ) ),
+						'text'      => get_excerpt( $post ),
 						'createdAt' => \gmdate( 'c', \strtotime( $post->post_date_gmt ) ),
-						'embed'     => array(
-							'$type'    => 'app.bsky.embed.external',
-							'external' => array(
-								'uri'         => \wp_get_shortlink( $post->ID ),
-								'title'       => \esc_html( $post->post_title ),
-								'description' => \esc_html( \get_excerpt( $post ) ),
+						'facets'    => array(
+							array(
+								'features' => array(
+									array(
+										'uri'   => \wp_get_shortlink( $post->ID ),
+										'$type' => 'app.bsky.richtext.facet#link',
+									),
+								),
+								'index'    => array(
+									'byteStart' => strlen( get_excerpt( $post ) ) - strlen( \wp_get_shortlink( $post->ID ) ),
+									'byteEnd'   => strlen( get_excerpt( $post ) ),
+								),
 							),
 						),
 					),
@@ -395,9 +400,7 @@ function send_post( $post_id ) {
 		)
 	);
 
-	if ( \is_wp_error( $response ) ) {
-		// save_error
-	}
+	return $response;
 }
 \add_action( 'bluesky_send_post', __NAMESPACE__ . '\send_post' );
 
@@ -430,9 +433,62 @@ function remove_scheduler() {
  * @param int     $length
  * @return void
  */
-function get_excerpt( $post, $length = 55 ) {
-	$excerpt_length = \apply_filters( 'excerpt_length', $length );
-	$excerpt_more   = \apply_filters( 'excerpt_more', ' [...]' );
+function get_excerpt( $post, $length = 300 ) {
+	$string       = \get_the_excerpt( $post );
+	$shortlink    = \wp_get_shortlink( $post->ID );
+	$excerpt_more = \apply_filters( 'excerpt_more', ' [...]' );
+	$length       = $length - strlen( $shortlink );
+	$length       = $length - strlen( $excerpt_more );
+	$length       = $length - 5; // just to be sure
 
-	return \wp_trim_words( \get_the_excerpt( $post ), $excerpt_length, $excerpt_more );
+	if ( strlen( $string ) > $length ) {
+		$string = wordwrap( $string, $length );
+		$string = explode( "\n", $string, 2 );
+		$string = $string[0];
+	}
+
+	return $string . ' ' . $excerpt_more . ' ' . $shortlink;
 }
+
+/**
+ * CLI command to send a post to Bluesky
+ *
+ * ## OPTIONS
+ *
+ * [--post_id=<post_id>]
+ * The Post ID to send to Bluesky
+ *
+ * @param array $args       The list of positional arguments.
+ * @param array $assoc_args The list of associative arguments.
+ * @return void
+ */
+function cli_send( $args, $assoc_args ) {
+	if ( ! isset( $assoc_args['post_id'] ) ) {
+		\WP_CLI::error( 'Please provide a post_id' );
+	}
+
+	$post_id  = (int) $assoc_args['post_id'];
+	$response = send_post( $post_id );
+
+	if ( \is_wp_error( $response ) ) {
+		\WP_CLI::error( $response->get_error_message() );
+	}
+
+	if ( \wp_remote_retrieve_response_code( $response ) >= 300 ) {
+		$body = \wp_remote_retrieve_body( $response );
+		$body = \json_decode( $body, true );
+		\WP_CLI::error( $body['message'] );
+	}
+
+	\WP_CLI::success( 'Post sent to Bluesky' );
+}
+
+/**
+ * Check for CLI env, to add the "Bluesky" CLI commands
+ *
+ * @return void
+ */
+function cli_command() {
+	\WP_CLI::add_command( 'bluesky send', __NAMESPACE__ . '\cli_send' );
+}
+\add_action( 'cli_init', __NAMESPACE__ . '\cli_command' );
