@@ -23,7 +23,7 @@
 	</rule>
 	<rule ref="WordPress-Extra" />
 	<rule ref="WordPress.WP.I18n"/>
-	<config name="text_domain" value="bluesky,default"/>
+	<config name="text_domain" value="share-on-bluesky,default"/>
 	<rule ref="WordPress.Security">
 		<exclude name="WordPress.Security.ValidatedSanitizedInput" />
 		<exclude name="WordPress.Security.NonceVerification" />
