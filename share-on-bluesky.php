@@ -436,10 +436,10 @@ function remove_scheduler() {
 function get_excerpt( $post, $length = 300 ) {
 	$string       = \get_the_excerpt( $post );
 	$shortlink    = \wp_get_shortlink( $post->ID );
-	$excerpt_more = \apply_filters( 'excerpt_more', ' [...]' );
+	$excerpt_more = \apply_filters( 'excerpt_more', '...' );
 	$length       = $length - strlen( $shortlink );
 	$length       = $length - strlen( $excerpt_more );
-	$length       = $length - 5; // just to be sure
+	$length       = $length - 3; // just to be sure
 
 	if ( strlen( $string ) > $length ) {
 		$string = wordwrap( $string, $length );
@@ -447,7 +447,7 @@ function get_excerpt( $post, $length = 300 ) {
 		$string = $string[0];
 	}
 
-	return $string . ' ' . $excerpt_more . ' ' . $shortlink;
+	return $string . $excerpt_more . ' ' . $shortlink;
 }
 
 /**
