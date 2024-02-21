@@ -14,6 +14,9 @@
 
 namespace Share_On_Bluesky;
 
+defined( 'ABSPATH' ) || exit;
+define( 'SHARE_ON_BLUESKY_DEFAULT_DOMAIN', 'https://bsky.social' );
+
 /**
  * On plugin activation, redirect to the profile page so folks can connect to their Bluesky profile.
  *
@@ -80,18 +83,7 @@ function register_settings() {
 		array(
 			'type'              => 'string',
 			'description'       => \__( 'The domain of your Bluesky instance', 'share-on-bluesky' ),
-			'default'           => 'https://bsky.social',
-			'sanitize_callback' => 'sanitize_text_field',
-		)
-	);
-
-	\register_setting(
-		'share-on-bluesky',
-		'bluesky_did',
-		array(
-			'type'              => 'string',
-			'description'       => \__( 'The DID of your Bluesky account', 'share-on-bluesky' ),
-			'default'           => '',
+			'default'           => SHARE_ON_BLUESKY_DEFAULT_DOMAIN,
 			'sanitize_callback' => 'sanitize_text_field',
 		)
 	);
@@ -102,7 +94,6 @@ function register_settings() {
 		array(
 			'type'              => 'string',
 			'description'       => \__( 'The password of your Bluesky account (will not be stored permanently)', 'share-on-bluesky' ),
-			'default'           => '',
 			'sanitize_callback' => 'sanitize_text_field',
 		)
 	);
@@ -113,29 +104,6 @@ function register_settings() {
 		array(
 			'type'              => 'string',
 			'description'       => \__( 'The identifier of your Bluesky account', 'share-on-bluesky' ),
-			'default'           => '',
-			'sanitize_callback' => 'sanitize_text_field',
-		)
-	);
-
-	\register_setting(
-		'share-on-bluesky',
-		'bluesky_access_jwt',
-		array(
-			'type'              => 'string',
-			'description'       => \__( 'The access token of your Bluesky account', 'share-on-bluesky' ),
-			'default'           => '',
-			'sanitize_callback' => 'sanitize_text_field',
-		)
-	);
-
-	\register_setting(
-		'share-on-bluesky',
-		'bluesky_refresh_jwt',
-		array(
-			'type'              => 'string',
-			'description'       => \__( 'The refresh token of your Bluesky account', 'share-on-bluesky' ),
-			'default'           => '',
 			'sanitize_callback' => 'sanitize_text_field',
 		)
 	);
@@ -153,7 +121,7 @@ function settings_page() {
 		\esc_html__( 'Share on Bluesky', 'share-on-bluesky' )
 	);
 
-	if ( \get_option( 'bluesky_identifier' ) && \get_option( 'bluesky_password' ) && ! \get_option( 'bluesky_access_jwt' ) ) {
+	if ( \get_option( 'bluesky_identifier' ) && \get_option( 'bluesky_password' ) ) {
 		get_access_token();
 	}
 	?>
@@ -167,7 +135,7 @@ function settings_page() {
 							<label for="bluesky-domain"><?php \esc_html_e( 'Bluesky Domain', 'share-on-bluesky' ); ?></label>
 						</th>
 						<td>
-							<input type="text" name="bluesky_domain" id="bluesky-domain" value="<?php echo \esc_attr( \get_option( 'bluesky_domain' ) ); ?>" placeholder="https://bsky.social" />
+							<input type="text" name="bluesky_domain" id="bluesky-domain" value="<?php echo \esc_attr( \get_option( 'bluesky_domain', SHARE_ON_BLUESKY_DEFAULT_DOMAIN ) ); ?>" placeholder="https://bsky.social" />
 							<p class="description" id="bluesky-domain-description">
 								<?php \esc_html_e( 'The domain of your Bluesky instance. (This has to be a valid URL including "http(s)")', 'share-on-bluesky' ); ?>
 							</p>
@@ -198,23 +166,44 @@ function settings_page() {
 						</td>
 					</tr>
 
-					<tr class="access-token-wrap">
-						<th>
-							<label for="bluesky-password"><?php \esc_html_e( 'Access Token', 'share-on-bluesky' ); ?></label>
-						</th>
-						<td>
-							<input type="text" class="regular-text code" value="<?php echo \esc_attr( \get_option( 'bluesky_access_jwt' ) ); ?>" readonly>
-							<p class="description" id="bluesky-password-description">
-								<?php \esc_html_e( 'This is only to see if everything works as expected', 'share-on-bluesky' ); ?>
-							</p>
-						</td>
-					</tr>
 				</tbody>
 			</table>
 			<?php \do_settings_sections( 'share-on-bluesky' ); ?>
 
 			<?php \submit_button(); ?>
 		</form>
+
+		<details>
+			<summary><?php _e( 'Debug Informations', 'share-on-bluesky' ); ?></summary>
+			<table class="form-table" role="presentation">
+				<tbody>
+					<tr class="access-token-wrap">
+						<th>
+							<label for="bluesky-did"><?php \esc_html_e( 'DID', 'share-on-bluesky' ); ?></label>
+						</th>
+						<td>
+							<input id="bluesky-did" type="text" class="regular-text code" value="<?php echo \esc_attr( \get_option( 'bluesky_did' ) ); ?>" readonly>
+						</td>
+					</tr>
+					<tr class="access-token-wrap">
+						<th>
+							<label for="bluesky-access-jwt"><?php \esc_html_e( 'Access Token', 'share-on-bluesky' ); ?></label>
+						</th>
+						<td>
+							<input id="bluesky-access-jwt" type="text" class="regular-text code" value="<?php echo \esc_attr( \get_option( 'bluesky_access_jwt' ) ); ?>" readonly>
+						</td>
+					</tr>
+					<tr class="access-token-wrap">
+						<th>
+							<label for="bluesky-refresh-jwt"><?php \esc_html_e( 'Refresh Token', 'share-on-bluesky' ); ?></label>
+						</th>
+						<td>
+							<input id="bluesky-refresh-jwt" type="text" class="regular-text code" value="<?php echo \esc_attr( \get_option( 'bluesky_refresh_jwt' ) ); ?>" readonly>
+						</td>
+					</tr>
+				</tbody>
+			</table>
+		</details>
 	</div>
 	<?php
 }
@@ -227,7 +216,7 @@ function settings_page() {
  */
 function get_access_token() {
 	$bluesky_identifier = \get_option( 'bluesky_identifier' );
-	$bluesky_domain     = \get_option( 'bluesky_domain' );
+	$bluesky_domain     = \get_option( 'bluesky_domain', SHARE_ON_BLUESKY_DEFAULT_DOMAIN );
 	$bluesky_password   = \get_option( 'bluesky_password' );
 
 	if (
@@ -271,9 +260,9 @@ function get_access_token() {
 			&& ! empty( $data['refreshJwt'] )
 			&& ! empty( $data['did'] )
 		) {
-			\update_option( 'bluesky_access_jwt', $data['accessJwt'] );
-			\update_option( 'bluesky_refresh_jwt', $data['refreshJwt'] );
-			\update_option( 'bluesky_did', $data['did'] );
+			\update_option( 'bluesky_access_jwt', sanitize_text_field( $data['accessJwt'] ) );
+			\update_option( 'bluesky_refresh_jwt', sanitize_text_field( $data['refreshJwt'] ) );
+			\update_option( 'bluesky_did', sanitize_text_field( $data['did'] ) );
 			\update_option( 'bluesky_password', '' );
 		} else {
 			// save error
@@ -287,7 +276,7 @@ function get_access_token() {
  * @return void
  */
 function refresh_access_token() {
-	$bluesky_domain = \get_option( 'bluesky_domain' );
+	$bluesky_domain = \get_option( 'bluesky_domain', SHARE_ON_BLUESKY_DEFAULT_DOMAIN );
 	$bluesky_domain = \trailingslashit( $bluesky_domain );
 	$session_url    = $bluesky_domain . 'xrpc/com.atproto.server.refreshSession';
 	$wp_version     = \get_bloginfo( 'version' );
@@ -319,8 +308,8 @@ function refresh_access_token() {
 		! empty( $data['accessJwt'] )
 		&& ! empty( $data['refreshJwt'] )
 	) {
-		\update_option( 'bluesky_access_jwt', $data['accessJwt'] );
-		\update_option( 'bluesky_refresh_jwt', $data['refreshJwt'] );
+		\update_option( 'bluesky_access_jwt', sanitize_text_field( $data['accessJwt'] ) );
+		\update_option( 'bluesky_refresh_jwt', sanitize_text_field( $data['refreshJwt'] ) );
 	} else {
 		// save error
 	}
@@ -353,7 +342,7 @@ function send_post( $post_id ) {
 
 	$access_token   = \get_option( 'bluesky_access_jwt' );
 	$did            = \get_option( 'bluesky_did' );
-	$bluesky_domain = \get_option( 'bluesky_domain' );
+	$bluesky_domain = \get_option( 'bluesky_domain', SHARE_ON_BLUESKY_DEFAULT_DOMAIN );
 	$bluesky_domain = \trailingslashit( $bluesky_domain );
 
 	if ( ! $access_token || ! $did || ! $bluesky_domain ) {
