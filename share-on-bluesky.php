@@ -424,6 +424,8 @@ function remove_scheduler() {
  */
 function get_excerpt( $post, $length = 300 ) {
 	$string       = \get_the_excerpt( $post );
+	$string       = \html_entity_decode( $string );
+	$string       = \wp_strip_all_tags( $string );
 	$shortlink    = \wp_get_shortlink( $post->ID );
 	$excerpt_more = \apply_filters( 'excerpt_more', '...' );
 	$length       = $length - strlen( $shortlink );
