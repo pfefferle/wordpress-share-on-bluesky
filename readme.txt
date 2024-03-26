@@ -1,7 +1,7 @@
 === Share on Bluesky ===
 Contributors: pfefferle
 Donate link: https://notiz.blog/donate/
-Tags: bluesky, microblogging, atprotocol
+Tags: bluesky, microblogging, atprotocol, atproto
 Requires at least: 4.9
 Tested up to: 6.5
 Stable tag: 2.0.0
