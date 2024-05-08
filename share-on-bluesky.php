@@ -18,27 +18,6 @@ defined( 'ABSPATH' ) || exit;
 define( 'SHARE_ON_BLUESKY_DEFAULT_DOMAIN', 'https://bsky.social' );
 
 /**
- * On plugin activation, redirect to the profile page so folks can connect to their Bluesky profile.
- *
- * @param string $plugin        Path to the plugin file relative to the plugins directory.
- * @param bool   $network_wide  Whether to enable the plugin for all sites in the network.
- */
-function redirect_to_settings( $plugin, $network_wide ) {
-	// Bail if the plugin is not Share on Bluesky.
-	if ( \plugin_basename( __FILE__ ) !== $plugin ) {
-		return;
-	}
-
-	// Bail if we're on a multisite and the plugin is network activated.
-	if ( $network_wide ) {
-		return;
-	}
-
-	\wp_safe_redirect( admin_url( 'options-general.php?page=share-on-bluesky' ) );
-}
-\add_action( 'activated_plugin', __NAMESPACE__ . '\redirect_to_settings', 10, 2 );
-
-/**
  * Add a settings page to the admin menu.
  *
  * @return void
