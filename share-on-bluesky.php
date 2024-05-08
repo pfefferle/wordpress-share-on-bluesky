@@ -423,18 +423,19 @@ function remove_scheduler() {
  * @return void
  */
 function get_excerpt( $post, $length = 300 ) {
-	$string       = \get_the_excerpt( $post );
-	$string       = \html_entity_decode( $string );
-	$string       = \wp_strip_all_tags( $string );
+	$string = \get_post_field( 'post_content', $post );
+	$string = \html_entity_decode( $string );
+	$string = \wp_strip_all_tags( $string, true );
+
 	$shortlink    = \wp_get_shortlink( $post->ID );
 	$excerpt_more = \apply_filters( 'excerpt_more', '...' );
 	$length       = $length - strlen( $shortlink );
 	$length       = $length - strlen( $excerpt_more );
 	$length       = $length - 3; // just to be sure
 
-	if ( strlen( $string ) > $length ) {
-		$string = wordwrap( $string, $length );
-		$string = explode( "\n", $string, 2 );
+	if ( \strlen( $string ) > $length ) {
+		$string = \wordwrap( $string, $length, '</bluesky-summary>' );
+		$string = \explode( '</bluesky-summary>', $string, 2 );
 		$string = $string[0];
 	}
 
