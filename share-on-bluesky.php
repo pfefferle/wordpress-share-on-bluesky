@@ -5,7 +5,7 @@
  * Description: A simple Crossposter for Bluesky (AT Protocol)
  * Author: Matthias Pfefferle
  * Author URI: https://notiz.blog/
- * Version: 2.0.0
+ * Version: 2.1.0
  * License: GPL-2.0
  * License URI: https://opensource.org/license/gpl-2-0/
  * Text Domain: share-on-bluesky
