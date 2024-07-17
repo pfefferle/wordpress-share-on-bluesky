@@ -3,7 +3,7 @@ Contributors: pfefferle
 Donate link: https://notiz.blog/donate/
 Tags: bluesky, microblogging, atprotocol, atproto
 Requires at least: 4.9
-Tested up to: 6.5
+Tested up to: 6.6
 Stable tag: 2.1.0
 Requires PHP: 5.6
 License: GPL-2.0
