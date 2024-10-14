@@ -2,7 +2,7 @@
 
 - Contributors: pfefferle
 - Donate link: https://notiz.blog/donate/
-- Tags: bluesky, microblogging, cross post, atproto
+- Tags: bluesky, microblogging, crosspost, atproto, social
 - Requires at least: 4.9
 - Tested up to: 6.6
 - Stable tag: 2.1.0
