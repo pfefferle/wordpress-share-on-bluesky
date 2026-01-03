@@ -1,0 +1,14 @@
+{
+  "name": "wordpress-share-on-bluesky",
+  "description": "Automatically share WordPress posts on Bluesky",
+  "author": "Matthias Pfefferle",
+  "license": "MIT",
+  "devDependencies": {
+    "@wordpress/env": "^10.0.0"
+  },
+  "scripts": {
+    "env:start": "wp-env start",
+    "env:stop": "wp-env stop",
+    "env:destroy": "wp-env destroy"
+  }
+}
