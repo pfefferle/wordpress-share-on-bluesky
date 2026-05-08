@@ -1,3 +1,6 @@
+> [!WARNING]
+> This plugin is no longer actively maintained, please use [ATmosphere](https://github.com/Automattic/wordpress-atmosphere/) instead.
+
 # Share on Bluesky
 
 - Contributors: pfefferle
