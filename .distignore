@@ -21,4 +21,4 @@ phpcs.xml
 .gitignore
 .gitattributes
 .editorconfig
-docker-compose.yml
+.wp-env.json
