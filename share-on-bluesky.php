@@ -5,7 +5,7 @@
  * Description: A simple Crossposter for Bluesky (AT Protocol)
  * Author: Matthias Pfefferle
  * Author URI: https://notiz.blog/
- * Version: 2.1.0
+ * Version: 2.1.1
  * License: GPL-2.0
  * License URI: https://opensource.org/license/gpl-2-0/
  * Text Domain: share-on-bluesky
@@ -352,12 +352,12 @@ function send_post( $post_id ) {
 							array(
 								'features' => array(
 									array(
-										'uri'   => \wp_get_shortlink( $post->ID ),
+                                        'uri'   => \get_permalink( $post->ID ),
 										'$type' => 'app.bsky.richtext.facet#link',
 									),
 								),
 								'index'    => array(
-									'byteStart' => strlen( get_excerpt( $post ) ) - strlen( \wp_get_shortlink( $post->ID ) ),
+									'byteStart' => strlen( get_excerpt( $post ) ) - strlen( \get_permalink( $post->ID ) ),
 									'byteEnd'   => strlen( get_excerpt( $post ) ),
 								),
 							),
@@ -406,7 +406,7 @@ function get_excerpt( $post, $length = 300 ) {
 	$string = \html_entity_decode( $string );
 	$string = \wp_strip_all_tags( $string, true );
 
-	$shortlink    = \wp_get_shortlink( $post->ID );
+    $shortlink    = \get_permalink( $post->ID );
 	$excerpt_more = \apply_filters( 'excerpt_more', '...' );
 	$length       = $length - strlen( $shortlink );
 	$length       = $length - strlen( $excerpt_more );
